@@ -94,3 +94,7 @@ temp/
 .DS_Store?
 ._*
 .Spotlight-V100
+
+/src/generated/prisma
+
+/src/generated/prisma
