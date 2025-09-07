@@ -14,10 +14,34 @@ datasource db {
 }
 
 model user_profile {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
   mobileNumber String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userAccount user_account?
+}
+
+model user_account {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  userId    Int      @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  userProfile user_profile @relation(fields: [userId], references: [id])
+}
+
+model user_session {
+  id                    Int      @id @default(autoincrement())
+  userId                Int
+  accessToken           String   @unique
+  accessTokenExpiresAt  DateTime
+  refreshToken          String   @unique
+  refreshTokenExpiresAt DateTime
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
