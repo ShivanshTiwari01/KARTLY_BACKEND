@@ -1,3 +1,4 @@
+````markdown
 # E-Commerce Backend Platform
 
 A robust and scalable backend solution for modern e-commerce applications.
@@ -30,14 +31,15 @@ git clone <repository-url>
 cd ECOMMERCE_BACKEND
 
 # Install dependencies
-npm install
+pnpm install
 
 # Set up environment variables
 cp .env.example .env
 
 # Start the server
-npm start
+pnpm start
 ```
+````
 
 ## 🔧 Environment Variables
 
@@ -63,3 +65,7 @@ Visit `/api/docs` after starting the server for interactive API documentation.
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+```
+
+```

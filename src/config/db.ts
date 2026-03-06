@@ -21,7 +21,6 @@ export const connectDB = async (): Promise<void> => {
 process.on('SIGINT', async () => {
   try {
     await mongoose.connection.close();
-    logger.info('Database connection closed due to application termination');
     process.exit(0);
   } catch (err) {
     logger.error({ err }, 'Error closing Database connection during shutdown');
