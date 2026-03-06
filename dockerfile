@@ -4,11 +4,11 @@ FROM node:22-alpine
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
-# Install dependencies
-RUN npm install --legacy-peer-deps
+# Install pnpm and dependencies
+RUN npm install -g pnpm && pnpm install
 
 # Copy the rest of the application code
 COPY . .
@@ -24,7 +24,7 @@ ENV PORT=8060
 USER node
 
 # Start the application
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]
 
 # Optional: Add a healthcheck to ensure the app is running
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

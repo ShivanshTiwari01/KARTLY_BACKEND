@@ -1,7 +1,6 @@
-import debug from 'debug';
 import http from 'http';
-import { green } from 'chalk';
-import app from './app';
+import green from 'chalk';
+import app, { logger } from './app';
 
 const createPort = (port = 8000) => {
   if (process.env.NODE_ENV === 'test') {
@@ -34,10 +33,9 @@ const onError = (error: any) => {
   }
 };
 const server = http.createServer(app);
-const log = debug('server'); // eslint-disable-line
 
 server.listen(PORT, () => {
-  log(`Server listening on port => ${green(PORT.toString())}`);
+  logger.info(`Server listening on port => ${green(PORT.toString())}`);
 });
 
 server.on('error', onError);

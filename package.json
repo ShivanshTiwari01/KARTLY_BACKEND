@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
-    "prestart": "npm run build",
+    "prestart": "pnpm run build",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts"
   },
@@ -19,6 +19,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/passport-oauth2": "^1.8.0",
     "bcrypt": "^6.0.0",
+    "chalk": "^5.6.2",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "debug": "^4.4.1",
