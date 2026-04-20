@@ -1,18 +1,15 @@
-import mongoose, { ConnectOptions } from 'mongoose';
+import mongoose from 'mongoose';
 import { logger } from '../app';
 
 const MONGO_URI = process.env.MONGO_URI || '';
 
 export const connectDB = async (): Promise<void> => {
   try {
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    } as ConnectOptions);
+    await mongoose.connect(MONGO_URI);
 
     logger.info('Database connected');
   } catch (err) {
-    logger.error({ err, uri: MONGO_URI }, 'Database Connection Error');
+    logger.error({ 'Database Connection Error': err });
     process.exit(1);
   }
 };
@@ -23,7 +20,7 @@ process.on('SIGINT', async () => {
     await mongoose.connection.close();
     process.exit(0);
   } catch (err) {
-    logger.error({ err }, 'Error closing Database connection during shutdown');
+    logger.error({ 'Error closing Database connection during shutdown': err });
     process.exit(1);
   }
 });

@@ -1,64 +1,77 @@
-import { createClient, RedisClientType } from 'redis';
+import Redis from 'ioredis';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-let client: RedisClientType | null = null;
+let redis: Redis | null = null;
 
 export const initRedis = async () => {
-  if (!client) {
-    client = createClient({ url: redisUrl });
+  if (redis) return redis;
 
-    client.on('error', (err) => {
-      console.error('Redis Client Error:', err);
-    });
+  redis = new Redis(redisUrl);
 
-    client.on('connect', () => {
-      console.log('Redis client connecting...');
-    });
+  redis.on('connect', () => {
+    console.log('Redis connecting...');
+  });
 
-    client.on('ready', () => {
-      console.log('Redis client connected and ready!');
-    });
+  redis.on('ready', () => {
+    console.log('Redis ready!');
+  });
 
-    client.on('end', () => {
-      console.log('Redis client disconnected.');
-    });
+  redis.on('error', (err) => {
+    console.error('Redis error:', err);
+  });
 
-    await client.connect();
-  }
-  return client;
+  redis.on('close', () => {
+    console.log('Redis connection closed.');
+  });
+
+  await new Promise<void>((resolve, reject) => {
+    if (!redis) return reject(new Error('Redis not created'));
+
+    redis.once('ready', () => resolve());
+    redis.once('error', (err) => reject(err));
+  });
+
+  return redis;
 };
 
-export const getRedisClient = (): RedisClientType => {
-  if (!client) {
-    throw new Error('Redis client not initialized. Call initRedis() first.');
+export const getRedis = (): Redis => {
+  if (!redis) {
+    throw new Error('Redis not initialized. Call initRedis() first.');
   }
-  return client;
+  return redis;
 };
 
 export const closeRedis = async () => {
-  if (client && client.isOpen) {
-    await client.quit();
-    client = null;
-    console.log('Redis connection closed.');
+  if (redis) {
+    await redis.quit();
+    redis = null;
+    console.log('Redis connection closed gracefully.');
   }
 };
 
-// Example utility functions
 export const redisSet = async (
   key: string,
   value: string,
   expireSeconds?: number
 ) => {
-  const c = getRedisClient();
+  const client = getRedis();
+
   if (expireSeconds) {
-    await c.set(key, value, { EX: expireSeconds });
+    await client.set(key, value, 'EX', expireSeconds);
   } else {
-    await c.set(key, value);
+    await client.set(key, value);
   }
 };
 
 export const redisGet = async (key: string) => {
-  const c = getRedisClient();
-  return await c.get(key);
+  return getRedis().get(key);
+};
+
+export const redisDel = async (key: string) => {
+  return getRedis().del(key);
+};
+
+export const redisExists = async (key: string) => {
+  return getRedis().exists(key);
 };
