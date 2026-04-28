@@ -36,7 +36,7 @@ const onError = (error: any) => {
 const startServer = async () => {
   try {
     await connectDB();
-    await initRedis();
+    // await initRedis();
 
     const server = http.createServer(app);
 
