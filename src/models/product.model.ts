@@ -1,11 +1,12 @@
 import mongoose from 'mongoose';
 import Categories from './categories.model';
 
-const productsSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -25,3 +26,7 @@ const productsSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+const Product = mongoose.model('Product', productSchema);
+
+export default Product;

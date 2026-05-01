@@ -13,24 +13,38 @@ const userAddressSchema = new mongoose.Schema(
     country: {
       type: String,
       required: true,
+      trim: true,
     },
     state: {
       type: String,
       required: true,
+      trim: true,
     },
     city: {
       type: String,
       required: true,
+      trim: true,
     },
     postalCode: {
       type: String,
       required: true,
+      trim: true,
     },
     landMark: {
       type: String,
       required: true,
     },
-    userProfile: {
+    countryCode: {
+      type: String,
+    },
+    phoneNumber: {
+      type: String,
+      trim: true,
+    },
+    DialCode: {
+      type: String,
+    },
+    userProfileId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: UserProfile,
       required: true,
