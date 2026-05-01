@@ -6,16 +6,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
     username: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
     mobile: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     isEmailVerified: {
       type: Boolean,
@@ -28,6 +33,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      trim: true,
     },
   },
   {

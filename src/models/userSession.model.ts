@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
 import User from './user.model';
 
-const userSession = new mongoose.Schema(
+const userSessionSchema = new mongoose.Schema(
   {
     accessToken: {
       type: String,
       required: true,
+      trim: true,
     },
     refreshToken: {
       type: String,
       required: true,
+      trim: true,
     },
     deviceDetails: {
       type: JSON,
@@ -17,7 +19,7 @@ const userSession = new mongoose.Schema(
     userLocation: {
       type: JSON,
     },
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: User,
       required: true,
@@ -27,3 +29,7 @@ const userSession = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+const UserSession = mongoose.model('UserSession', userSessionSchema);
+
+export default UserSession;

@@ -6,12 +6,19 @@ const userProfileSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
+      trim: true,
     },
     lastName: {
       type: String,
       required: true,
+      trim: true,
     },
-    user: {
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: User,
       required: true,
