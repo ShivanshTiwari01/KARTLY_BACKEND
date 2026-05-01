@@ -7,6 +7,7 @@ import pino from 'pino';
 import passport from './services/passport';
 import chalk from 'chalk';
 import { rateLimit } from 'express-rate-limit';
+import routes from './routes';
 
 const app = express();
 
@@ -49,6 +50,8 @@ app.get('/', (_req: Request, res: Response) => {
     message: 'Unauthorized access to this resource',
   });
 });
+
+app.use('/api', routes);
 
 process.on('SIGINT', async () => {
   process.exit(0);
