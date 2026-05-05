@@ -6,6 +6,7 @@ import {
   JWT_ACCESS_EXPIRES_IN,
   JWT_REFRESH_EXPIRES_IN,
 } from '../config/jwt';
+import ms from 'ms';
 
 export function signAccessToken(payload: object) {
   return jwt.sign(payload, JWT_ACCESS_SECRET, {
@@ -26,3 +27,11 @@ export function verifyAccessToken(token: string) {
 export function verifyRefreshToken(token: string) {
   return jwt.verify(token, JWT_REFRESH_SECRET);
 }
+
+export const accessTokenExpiry = new Date(
+  Date.now() + ms(JWT_ACCESS_EXPIRES_IN as ms.StringValue)
+);
+
+export const refreshTokenExpiry = new Date(
+  Date.now() + ms((JWT_REFRESH_EXPIRES_IN as ms.StringValue) || '7d')
+);

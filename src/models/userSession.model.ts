@@ -13,6 +13,14 @@ const userSessionSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    accessTokenExpiry: {
+      type: Date,
+      required: true,
+    },
+    refreshTokenExpiry: {
+      type: Date,
+      required: true,
+    },
     deviceDetails: {
       type: JSON,
     },

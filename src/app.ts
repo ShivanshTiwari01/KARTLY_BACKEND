@@ -4,7 +4,6 @@ import cors from 'cors';
 import methodOverride from 'method-override';
 import helmet from 'helmet';
 import pino from 'pino';
-import passport from './services/passport';
 import chalk from 'chalk';
 import { rateLimit } from 'express-rate-limit';
 import routes from './routes';
@@ -31,8 +30,6 @@ app.use(compression());
 app.use(methodOverride());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(passport.initialize());
-// If using sessions: app.use(passport.session());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
