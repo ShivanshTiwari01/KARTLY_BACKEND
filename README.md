@@ -6,7 +6,7 @@ A scalable, production-ready REST API for the **Kartly** e-commerce platform, bu
 
 ## Table of Contents
 
-- [Overview](#overview)
+- [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -19,14 +19,23 @@ A scalable, production-ready REST API for the **Kartly** e-commerce platform, bu
 - [Data Models](#data-models)
 - [Security](#security)
 - [Scripts](#scripts)
-- [Roadmap](#roadmap)
 - [License](#license)
 
 ---
 
-## Overview
+## Features
 
-Kartly Backend provides the core server-side infrastructure for an e-commerce application. It handles user authentication, session management, product catalogues, shopping carts, wishlists, and order processing through a clean RESTful API.
+- **Authentication & Sessions** — Register, sign in, token refresh, and secure session management with JWT access/refresh token pairs
+- **User Profiles & Addresses** — Extended profile management and multiple saved delivery addresses per user
+- **Product Catalogue** — Full CRUD for products with detailed attributes and category associations
+- **Categories** — Hierarchical category tree for organising products
+- **Shopping Cart** — Persistent cart with individual line-item management (add, update, remove)
+- **Wishlist** — Save products for later with user-scoped wishlists
+- **Order Management** — Place orders, track order status, and manage order line items
+- **Email & Mobile Verification** — Verify user email addresses and mobile numbers
+- **Admin Controls** — Role-based access for administrative operations
+- **Caching** — Redis-backed caching for sessions and frequently accessed data
+- **Rate Limiting** — Per-IP request throttling to prevent abuse
 
 ---
 
@@ -54,7 +63,12 @@ Kartly Backend provides the core server-side infrastructure for an e-commerce ap
 src/
 ├── api/
 │   ├── auth/               # Auth routes, controller, validation, helpers
-│   └── products/           # (upcoming) Product routes & controller
+│   ├── users/              # User profile & address routes
+│   ├── products/           # Product & product-details routes
+│   ├── categories/         # Category routes
+│   ├── cart/               # Cart & cart-item routes
+│   ├── wishlist/           # Wishlist routes
+│   └── orders/             # Order routes
 ├── config/
 │   ├── db.ts               # MongoDB connection
 │   ├── firebase_admin.ts   # Firebase Admin SDK setup
@@ -112,7 +126,7 @@ Create a `.env` file in the project root. All variables are required unless mark
 ```env
 # Server
 NODE_ENV=development
-PORT=5000
+PORT=5001
 
 # MongoDB
 MONGO_URI=mongodb://localhost:27017/kartly
@@ -156,7 +170,7 @@ A `Dockerfile` is provided for containerised deployments.
 docker build -t kartly-backend .
 
 # Run the container
-docker run -p 8060:8060 --env-file .env kartly-backend
+docker run -p 5001:5001 --env-file .env kartly-backend
 ```
 
 The container runs as a non-root `node` user and exposes port **8060** by default. A health check is configured to probe the running process every 30 seconds.
@@ -165,69 +179,80 @@ The container runs as a non-root `node` user and exposes port **8060** by defaul
 
 ## API Reference
 
-All routes are prefixed with `/api`.
+All routes are prefixed with `/api`. Protected routes require an `Authorization: Bearer <accessToken>` header.
 
 ### Authentication — `/api/auth`
 
-| Method | Endpoint                  | Auth Required | Description                                  |
-| ------ | ------------------------- | :-----------: | -------------------------------------------- |
-| `POST` | `/api/auth/register`      |      No       | Register a new user                          |
-| `POST` | `/api/auth/signin`        |      No       | Sign in and receive access + refresh tokens  |
-| `POST` | `/api/auth/refresh-token` |      Yes      | Issue a new access token using refresh token |
+| Method | Endpoint                    | Auth | Description                                  |
+| ------ | --------------------------- | :--: | -------------------------------------------- |
+| `POST` | `/api/auth/register`        |  No  | Register a new user                          |
+| `POST` | `/api/auth/signin`          |  No  | Sign in, receive access + refresh tokens     |
+| `POST` | `/api/auth/refresh-token`   | Yes  | Issue a new access token using refresh token |
+| `POST` | `/api/auth/signout`         | Yes  | Invalidate the current session               |
+| `POST` | `/api/auth/verify-email`    | Yes  | Verify user email address with OTP           |
+| `POST` | `/api/auth/verify-mobile`   | Yes  | Verify user mobile number with OTP           |
+| `POST` | `/api/auth/forgot-password` |  No  | Request a password reset link                |
+| `POST` | `/api/auth/reset-password`  |  No  | Reset password using a valid reset token     |
 
-#### Register — `POST /api/auth/register`
+### Users — `/api/users`
 
-**Request body:**
+| Method   | Endpoint                      | Auth | Description                 |
+| -------- | ----------------------------- | :--: | --------------------------- |
+| `GET`    | `/api/users/me`               | Yes  | Get current user profile    |
+| `PUT`    | `/api/users/me`               | Yes  | Update current user profile |
+| `GET`    | `/api/users/me/addresses`     | Yes  | List all saved addresses    |
+| `POST`   | `/api/users/me/addresses`     | Yes  | Add a new address           |
+| `PUT`    | `/api/users/me/addresses/:id` | Yes  | Update an address           |
+| `DELETE` | `/api/users/me/addresses/:id` | Yes  | Delete an address           |
 
-```json
-{
-  "email": "user@example.com",
-  "password": "StrongPassword123!"
-}
-```
+### Products — `/api/products`
 
-**Response `201`:**
+| Method   | Endpoint            | Auth  | Description                             |
+| -------- | ------------------- | :---: | --------------------------------------- |
+| `GET`    | `/api/products`     |  No   | List all products (paginated, filtered) |
+| `GET`    | `/api/products/:id` |  No   | Get a single product with details       |
+| `POST`   | `/api/products`     | Admin | Create a new product                    |
+| `PUT`    | `/api/products/:id` | Admin | Update a product                        |
+| `DELETE` | `/api/products/:id` | Admin | Delete a product                        |
 
-```json
-{
-  "success": true,
-  "message": "Registration successful"
-}
-```
+### Categories — `/api/categories`
 
-#### Sign In — `POST /api/auth/signin`
+| Method   | Endpoint              | Auth  | Description                  |
+| -------- | --------------------- | :---: | ---------------------------- |
+| `GET`    | `/api/categories`     |  No   | List all categories          |
+| `GET`    | `/api/categories/:id` |  No   | Get a category and its items |
+| `POST`   | `/api/categories`     | Admin | Create a new category        |
+| `PUT`    | `/api/categories/:id` | Admin | Update a category            |
+| `DELETE` | `/api/categories/:id` | Admin | Delete a category            |
 
-**Request body:**
+### Cart — `/api/cart`
 
-```json
-{
-  "email": "user@example.com",
-  "password": "StrongPassword123!"
-}
-```
+| Method   | Endpoint              | Auth | Description                  |
+| -------- | --------------------- | :--: | ---------------------------- |
+| `GET`    | `/api/cart`           | Yes  | Get current user's cart      |
+| `POST`   | `/api/cart/items`     | Yes  | Add an item to the cart      |
+| `PUT`    | `/api/cart/items/:id` | Yes  | Update item quantity         |
+| `DELETE` | `/api/cart/items/:id` | Yes  | Remove an item from the cart |
+| `DELETE` | `/api/cart`           | Yes  | Clear the entire cart        |
 
-**Response `200`:**
+### Wishlist — `/api/wishlist`
 
-```json
-{
-  "success": true,
-  "accessToken": "<jwt>",
-  "refreshToken": "<jwt>"
-}
-```
+| Method   | Endpoint                   | Auth | Description                        |
+| -------- | -------------------------- | :--: | ---------------------------------- |
+| `GET`    | `/api/wishlist`            | Yes  | Get current user's wishlist        |
+| `POST`   | `/api/wishlist`            | Yes  | Add a product to the wishlist      |
+| `DELETE` | `/api/wishlist/:productId` | Yes  | Remove a product from the wishlist |
 
-#### Refresh Token — `POST /api/auth/refresh-token`
+### Orders — `/api/orders`
 
-Requires a valid `Authorization: Bearer <refreshToken>` header.
-
-**Response `200`:**
-
-```json
-{
-  "success": true,
-  "accessToken": "<new_jwt>"
-}
-```
+| Method | Endpoint                 | Auth  | Description                        |
+| ------ | ------------------------ | :---: | ---------------------------------- |
+| `GET`  | `/api/orders`            |  Yes  | List current user's orders         |
+| `GET`  | `/api/orders/:id`        |  Yes  | Get a single order with line items |
+| `POST` | `/api/orders`            |  Yes  | Place a new order                  |
+| `PUT`  | `/api/orders/:id/cancel` |  Yes  | Cancel an order                    |
+| `GET`  | `/api/admin/orders`      | Admin | List all orders (admin)            |
+| `PUT`  | `/api/admin/orders/:id`  | Admin | Update order status (admin)        |
 
 ---
 
@@ -236,17 +261,17 @@ Requires a valid `Authorization: Bearer <refreshToken>` header.
 | Model            | Description                                          |
 | ---------------- | ---------------------------------------------------- |
 | `User`           | Core credentials (email, username, mobile, password) |
-| `UserProfile`    | Extended profile info                                |
-| `UserSession`    | Refresh token sessions                               |
-| `UserAddress`    | Saved delivery addresses                             |
-| `Product`        | Product listings                                     |
-| `ProductDetails` | Extended product attributes                          |
-| `Categories`     | Product category tree                                |
+| `UserProfile`    | Extended profile info (name, avatar, bio)            |
+| `UserSession`    | Active refresh token sessions                        |
+| `UserAddress`    | Saved delivery addresses per user                    |
+| `Product`        | Product listings (name, price, stock, category)      |
+| `ProductDetails` | Extended product attributes (specs, images, tags)    |
+| `Categories`     | Hierarchical product category tree                   |
 | `Cart`           | User shopping cart                                   |
-| `CartItems`      | Individual cart line items                           |
-| `Wishlist`       | Saved wishlist items                                 |
-| `OrderDetails`   | Order header                                         |
-| `OrderItems`     | Order line items                                     |
+| `CartItems`      | Individual cart line items (product, qty, price)     |
+| `Wishlist`       | User wishlist entries                                |
+| `OrderDetails`   | Order header (status, total, address, payment)       |
+| `OrderItems`     | Order line items (product snapshot, qty, price)      |
 
 ---
 
@@ -256,9 +281,9 @@ Requires a valid `Authorization: Bearer <refreshToken>` header.
 - **CORS** — configurable cross-origin resource sharing
 - **Rate Limiting** — 100 requests per 15-minute window per IP (via `express-rate-limit`)
 - **bcrypt** — passwords hashed with a cost factor of 12
-- **JWT** — short-lived access tokens + long-lived refresh tokens
+- **JWT** — short-lived access tokens + long-lived refresh tokens stored server-side
 - **Non-root Docker user** — container runs as `node` user
-- **Input validation** — all incoming request bodies validated with Zod schemas
+- **Input validation** — all request bodies validated with Zod schemas before processing
 
 ---
 
@@ -271,23 +296,6 @@ Requires a valid `Authorization: Bearer <refreshToken>` header.
 | `start`  | `pnpm start`  | Run compiled production build    |
 | `lint`   | `pnpm lint`   | Run ESLint across `src/`         |
 | `format` | `pnpm format` | Auto-format with Prettier        |
-
----
-
-## Roadmap
-
-- [ ] Products API (CRUD, search, filtering)
-- [ ] Categories API
-- [ ] Cart & CartItems API
-- [ ] Wishlist API
-- [ ] Orders API
-- [ ] Payment gateway integration
-- [ ] Email verification flow
-- [ ] Mobile OTP verification
-- [ ] Admin role & dashboard endpoints
-- [ ] API documentation (Swagger / OpenAPI)
-- [ ] Test suite (Jest / Supertest)
-- [ ] CI/CD pipeline
 
 ---
 
