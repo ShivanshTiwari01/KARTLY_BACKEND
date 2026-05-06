@@ -147,3 +147,50 @@ export const signin = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const updateToken = async (req: Request, res: Response) => {
+  try {
+    const { userId, email } = req.user!;
+
+    const userSessionExists = await UserSession.findOne({
+      userId,
+    });
+
+    if (!userSessionExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'User session not found',
+      });
+    }
+
+    const payload = {
+      userId,
+      email,
+    };
+
+    const newAccessToken = signAccessToken(payload);
+    const newRefreshToken = signRefreshToken(payload);
+
+    const userSession = await UserSession.create({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+      accessTokenExpiry: accessTokenExpiry,
+      refreshTokenExpiry: refreshTokenExpiry,
+      userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'User session refreshed successfully',
+      token: {
+        newAccessToken,
+        newRefreshToken,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error,',
+    });
+  }
+};
