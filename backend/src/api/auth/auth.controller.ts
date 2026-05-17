@@ -195,7 +195,7 @@ export const updateToken = async (req: Request, res: Response) => {
   }
 };
 
-export const signOut = async (req: Request, res: Response) => {
+export const signout = async (req: Request, res: Response) => {
   try {
     const { userId } = req.user!;
 
